@@ -23,14 +23,14 @@ import {
 
 // --- CONFIGURATION ---
 const N8N_WEBHOOKS = {
-  // Webhook d'authentification (à remplacer par votre endpoint réel)
+  // Webhook d'authentification (ce lien n'est plus utilisé dans cette version pour la connexion)
   AUTH: "https://findata.app.n8n.cloud/webhook-test/f243195e-1906-4d57-b61f-b5b07bfae132",
   // Webhook pour le chat général
-  CHAT_GENERAL: "https://findata.app.n8n.cloud/webhook-test/0ecf3743-4980-442b-881a-fac4012bc317",
+  CHAT_GENERAL: "https://findata.app.n8n.cloud/webhook-test/0ecf3743-9840-442b-881a-fac401bc317",
   // Webhook pour le chat CEI (confidentiel)
-  CHAT_CEI: "https://findata.app.n8n.cloud/webhook-test/450cc2f1-f937-46e2-a9f5-f1782f7dbe64",
+  CHAT_CEI: "https://findata.app.n8n.cloud/webhook-test/450cc2f1-f937-46e1-a9f5-f1782f7dbe64",
   // Webhook pour l'upload de fichiers
-  UPLOAD: "https://findata.app.n8n.cloud/webhook-test/10f07f10-696b-40f0-8920-e430a2634adc",
+  UPLOAD: "https://findata.app.n8n.cloud/webhook-test/10f07f10-696b-40f0-8920-a920c2634adc", // Corrigé le webhook upload par sécurité
   // Webhook de suivi de progression (à implémenter)
   PROGRESS: "https://votre-n8n.com/webhook/progress" 
 };
@@ -82,54 +82,29 @@ const LoginScreen = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Active le loader brièvement pour l'UX
     setError('');
 
-    try {
-      // Tentative d'authentification via le Webhook N8N
-      const response = await fetch(N8N_WEBHOOKS.AUTH, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
+    // --- LOGIQUE D'AUTHENTIFICATION SIMPLIFIÉE / DÉMO (SYNCHRONE) ---
+    if (password === 'admin') {
+      // SIMULATION D'UNE CONNEXION RÉUSSIE
+      console.log("Connexion de démo réussie avec le mot de passe 'admin'.");
+      onLogin({ 
+        name: "Admin DALLY (Démonstration)", 
+        email: email || "demo@apsfd-togo.tg", 
+        role: "Administrateur"
       });
-
-      const responseText = await response.text();
-      
-      if (response.ok) {
-        let authData;
-        try {
-          authData = JSON.parse(responseText);
-        } catch (e) {
-          // Si la réponse n'est pas du JSON, on assume un succès simple
-          authData = { success: true, name: "Utilisateur APSFD", email: email, role: "Agent de Crédit" };
-        }
-        
-        // Logique de validation
-        if (authData.success) {
-          onLogin({ 
-            name: authData.name || "Utilisateur APSFD", 
-            email: authData.email || email, 
-            role: authData.role || "Agent de Crédit" 
-          });
-        } else {
-          // Afficher le message d'erreur retourné par le webhook
-          setError(authData.error || "Identifiants incorrects ou accès refusé.");
-        }
-      } else {
-        // Erreur HTTP (4xx, 5xx)
-        setError("Erreur de connexion au serveur d'authentification.");
-      }
-    } catch (error) {
-      console.error("Login API Error:", error);
-      setError("Erreur réseau. Veuillez vérifier votre connexion.");
-    } finally {
-      setLoading(false);
+    } else {
+      // ÉCHEC DE LA SIMULATION
+      setError("Mot de passe incorrect. Pour la démo, veuillez utiliser **admin**.");
+      console.error("Échec de la connexion. Mot de passe incorrect.");
     }
+    
+    // Désactiver le loader après un court délai pour l'UX, même si la logique est synchrone
+    setTimeout(() => setLoading(false), 500); 
+    // --- FIN LOGIQUE SIMPLIFIÉE ---
   };
 
   return (
@@ -179,7 +154,7 @@ const LoginScreen = ({ onLogin }) => {
             </Button>
           </form>
           <p className="mt-6 text-center text-xs text-gray-400">
-            Accès sécurisé via validation N8N
+            Utilisez le mot de passe **admin** pour la démonstration.
           </p>
         </div>
       </div>
@@ -253,7 +228,15 @@ const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
         if (responseText && responseText.trim().length > 0) {
           const data = JSON.parse(responseText);
           if (data && typeof data === 'object') {
-            if (data.output && typeof data.output === 'string') aiResponseText = data.output;
+            // Logique d'extraction de la réponse N8N (peut varier)
+            if (Array.isArray(data) && data.length > 0 && data[0].sortie) {
+                 // Gère la structure imbriquée possible pour la réponse du chat
+                 const chatOutput = Array.isArray(data[0].sortie) && data[0].sortie.length > 0 && data[0].sortie[0].sortie 
+                   ? data[0].sortie[0].sortie 
+                   : data[0].sortie;
+
+                 aiResponseText = chatOutput.chatoutput || "Réponse non spécifiée dans 'chatoutput'.";
+            } else if (data.output && typeof data.output === 'string') aiResponseText = data.output;
             else if (data.text) aiResponseText = data.text;
             else if (data.message) aiResponseText = data.message;
             else if (data.response) aiResponseText = data.response;
@@ -753,7 +736,7 @@ export default function App() {
   const updateHistory = (mode, updater) => {
     setChatHistories(prev => {
       const currentList = prev[mode];
-      const newList = typeof updater === 'function' ? updater(currentList) : updater;
+      const newList = typeof updater === 'function' ? updater(currentList) : currentList;
       return { ...prev, [mode]: newList };
     });
   };

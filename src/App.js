@@ -23,16 +23,24 @@ import {
 
 // --- CONFIGURATION ---
 const N8N_WEBHOOKS = {
-  // Nouveau Webhook pour l'authentification
+  // Webhook d'authentification (à remplacer par votre endpoint réel)
   AUTH: "https://findata.app.n8n.cloud/webhook-test/f243195e-1906-4d57-b61f-b5b07bfae132",
+  // Webhook pour le chat général
   CHAT_GENERAL: "https://findata.app.n8n.cloud/webhook-test/0ecf3743-4980-442b-881a-fac4012bc317",
+  // Webhook pour le chat CEI (confidentiel)
   CHAT_CEI: "https://findata.app.n8n.cloud/webhook-test/450cc2f1-f937-46e2-a9f5-f1782f7dbe64",
+  // Webhook pour l'upload de fichiers
   UPLOAD: "https://findata.app.n8n.cloud/webhook-test/10f07f10-696b-40f0-8920-e430a2634adc",
-  PROGRESS: "https://votre-n8n.com/webhook/progress"
+  // Webhook de suivi de progression (à implémenter)
+  PROGRESS: "https://votre-n8n.com/webhook/progress" 
 };
 
 // --- COMPOSANTS UTILITAIRES ---
 
+/**
+ * Composant de Bouton stylisé avec Tailwind CSS.
+ * @param {object} props - Les propriétés du composant.
+ */
 const Button = ({ children, onClick, variant = 'primary', className = '', disabled = false, type = 'button' }) => {
   const baseStyle = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2";
   const variants = {
@@ -55,6 +63,10 @@ const Button = ({ children, onClick, variant = 'primary', className = '', disabl
   );
 };
 
+/**
+ * Composant Card pour l'encadrement des sections.
+ * @param {object} props - Les propriétés du composant.
+ */
 const Card = ({ children, className = '' }) => (
   <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${className}`}>
     {children}
@@ -100,7 +112,7 @@ const LoginScreen = ({ onLogin }) => {
         // Logique de validation
         if (authData.success) {
           onLogin({ 
-            name: authData.name || "Utilisateur APSFD", // Utiliser les données du webhook si disponibles
+            name: authData.name || "Utilisateur APSFD", 
             email: authData.email || email, 
             role: authData.role || "Agent de Crédit" 
           });
@@ -176,7 +188,10 @@ const LoginScreen = ({ onLogin }) => {
 };
 
 // 2. UNIVERSAL CHAT INTERFACE 
-// Modifié pour recevoir les messages depuis le composant parent App
+/**
+ * Composant d'interface de chat pour les conversations AI.
+ * @param {object} props - Les propriétés du composant.
+ */
 const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
   const config = {
     general: {
@@ -233,6 +248,7 @@ const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
       const responseText = await response.text();
       let aiResponseText = "Réponse vide.";
 
+      // Tentative de parser la réponse N8N qui peut être en JSON ou en texte simple
       try {
         if (responseText && responseText.trim().length > 0) {
           const data = JSON.parse(responseText);
@@ -279,6 +295,7 @@ const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
         </div>
       )}
 
+      {/* Zone de messages */}
       <div className={`flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 ${mode === 'general' ? 'rounded-t-xl' : ''}`}>
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -294,6 +311,7 @@ const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
             </div>
           </div>
         ))}
+        {/* Indicateur de frappe (Typing indicator) */}
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-white border border-gray-200 p-4 rounded-2xl rounded-bl-none shadow-sm">
@@ -308,6 +326,7 @@ const ChatInterface = ({ user, mode = 'general', messages, setMessages }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Zone de saisie */}
       <div className="bg-white p-4 border-t border-gray-200 rounded-b-xl">
         <div className="flex gap-2">
           <input
@@ -350,6 +369,7 @@ const TrainingModule = () => {
   };
 
   const finishQuiz = () => {
+    // Simuler la validation du quiz et la mise à jour de la progression
     const updatedModules = modules.map(m => 
       m.id === activeModule.id ? { ...m, progress: 100, status: 'validated' } : m
     );
@@ -358,6 +378,7 @@ const TrainingModule = () => {
     setActiveModule(null);
   };
 
+  // Vue du Quiz
   if (showQuiz && activeModule) {
     return (
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-8">
@@ -366,6 +387,7 @@ const TrainingModule = () => {
           <div className="p-4 bg-green-50 rounded-lg border border-green-100">
             <p className="font-medium mb-4">Question 1 : Quel est le ratio de liquidité minimum recommandé ?</p>
             <div className="space-y-2">
+              {/* Options du quiz (simulées) */}
               {['10%', '50%', '75%', '100%'].map((opt, i) => (
                 <label key={i} className="flex items-center space-x-3 p-2 hover:bg-white rounded cursor-pointer">
                   <input type="radio" name="q1" className="text-green-600 focus:ring-green-500" />
@@ -383,10 +405,12 @@ const TrainingModule = () => {
     );
   }
 
+  // Vue de la liste des modules
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-green-700 to-green-600 text-white border-none">
+        {/* Carte des points */}
+        <Card className="bg-gradient-to-br from-green-700 to-green-600 text-white border-none relative overflow-hidden">
           <h3 className="text-green-100 text-sm font-medium uppercase">Points Cumulés</h3>
           <div className="flex items-end gap-2 mt-2">
             <span className="text-4xl font-bold">145</span>
@@ -394,6 +418,7 @@ const TrainingModule = () => {
           </div>
           <Award className="absolute top-6 right-6 h-8 w-8 text-green-400 opacity-50" />
         </Card>
+        {/* Carte de validation */}
         <Card>
           <h3 className="text-gray-500 text-sm font-medium uppercase">Modules Validés</h3>
           <div className="flex items-end gap-2 mt-2">
@@ -401,15 +426,17 @@ const TrainingModule = () => {
             <span className="text-sm text-gray-400 mb-1">/ {modules.length}</span>
           </div>
         </Card>
+        {/* Carte de progression */}
         <Card>
           <h3 className="text-gray-500 text-sm font-medium uppercase">Prochain Niveau</h3>
           <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-yellow-400 w-[45%]"></div>
+            <div className="h-full bg-yellow-400 w-[45%]"></div> {/* Progression simulée à 45% */}
           </div>
           <p className="text-xs text-gray-400 mt-2">45 pts restants pour "Expert Senior"</p>
         </Card>
       </div>
 
+      {/* Liste des modules */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {modules.map((mod) => (
           <Card key={mod.id} className="hover:shadow-md transition-shadow">
@@ -418,15 +445,18 @@ const TrainingModule = () => {
                 {mod.category}
               </span>
               {mod.status === 'validated' && <CheckCircle className="text-green-500 h-5 w-5" />}
+              {mod.status === 'locked' && <Lock className="text-gray-400 h-5 w-5" />}
             </div>
             
             <h4 className="text-lg font-bold text-gray-800 mb-2">{mod.title}</h4>
             
+            {/* Icônes de contenu */}
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
               <span className="flex items-center gap-1"><FileText size={14}/> PPT</span>
               <span className="flex items-center gap-1"><PlayCircle size={14}/> Vidéo</span>
             </div>
 
+            {/* Barre de progression */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium text-gray-600">{mod.progress}% complété</span>
@@ -440,9 +470,12 @@ const TrainingModule = () => {
               </div>
             </div>
 
+            {/* Boutons d'action */}
             <div className="mt-6 flex gap-2">
               {mod.status === 'validated' ? (
                  <Button variant="outline" className="w-full text-sm">Revoir</Button>
+              ) : mod.status === 'locked' ? (
+                <Button disabled className="w-full text-sm opacity-70">Bloqué</Button>
               ) : (
                 <>
                   <Button className="flex-1 text-sm" onClick={() => {}}>Voir Cours</Button>
@@ -458,7 +491,10 @@ const TrainingModule = () => {
 };
 
 // 4. UPLOAD MODULE 
-// Modifié pour envoyer réellement les fichiers via Fetch
+/**
+ * Composant de dépôt de fichiers.
+ * @param {object} props - Les propriétés du composant.
+ */
 const UploadModule = () => {
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState([]);
@@ -466,6 +502,7 @@ const UploadModule = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Gestion des événements de glisser-déposer
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -493,7 +530,7 @@ const UploadModule = () => {
   };
 
   const handleFiles = (fileList) => {
-    // Important: on stocke le fichier brut (rawFile) pour l'envoi
+    // Stocker le fichier brut (rawFile) pour l'envoi
     const newFiles = Array.from(fileList).map(file => ({
       rawFile: file, 
       name: file.name,
@@ -504,6 +541,7 @@ const UploadModule = () => {
     setFiles([...files, ...newFiles]);
   };
 
+  // Fonction d'envoi des fichiers via N8N
   const triggerUpload = async () => {
     if (files.length === 0) return;
     setUploading(true);
@@ -513,17 +551,20 @@ const UploadModule = () => {
     const formData = new FormData();
     // Ajouter tous les fichiers au FormData
     files.forEach((fileObj) => {
-      formData.append('files', fileObj.rawFile);
+      formData.append('files', fileObj.rawFile, fileObj.name); // Inclure le nom pour N8N
     });
 
     try {
+      // Envoi du FormData au webhook N8N
       const response = await fetch(N8N_WEBHOOKS.UPLOAD, {
         method: 'POST',
         body: formData,
-        // Ne pas définir Content-Type header manuellement pour FormData, fetch le fait automatiquement avec le boundary
+        // Content-Type n'est PAS défini, car FormData s'en charge avec le "boundary"
       });
 
       if (response.ok) {
+        // Optionnel : vérifier si N8N retourne un succès spécifique
+        // const result = await response.json(); 
         setSuccessMsg("Fichiers transmis avec succès au workflow N8N !");
         setFiles([]);
       } else {
@@ -531,15 +572,22 @@ const UploadModule = () => {
       }
     } catch (error) {
       console.error(error);
-      setErrorMsg("Échec de l'envoi. Vérifiez le webhook.");
+      setErrorMsg("Échec de l'envoi. Vérifiez la configuration du webhook.");
     } finally {
       setUploading(false);
-      setTimeout(() => { setSuccessMsg(''); setErrorMsg(''); }, 5000);
+      setTimeout(() => { setSuccessMsg(''); setErrorMsg(''); }, 5000); // Masquer le message après 5s
     }
   };
 
+  // Fonction pour retirer un fichier de la liste d'attente
+  const removeFile = (index) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
+
   return (
     <div className="max-w-3xl mx-auto">
+      {/* Zone de Drag and Drop */}
       <div 
         className={`relative p-10 border-2 border-dashed rounded-2xl text-center transition-colors ${
           dragActive ? "border-green-500 bg-green-50" : "border-gray-300 bg-gray-50"
@@ -549,6 +597,7 @@ const UploadModule = () => {
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
+        {/* Input caché pour cliquer et sélectionner */}
         <input 
           type="file" 
           multiple 
@@ -562,30 +611,33 @@ const UploadModule = () => {
           </div>
           <div>
             <p className="text-lg font-medium text-gray-700">Glissez vos fichiers ici</p>
-            <p className="text-sm text-gray-500 mt-1">PDF ou Excel (Max 10MB)</p>
+            <p className="text-sm text-gray-500 mt-1">PDF ou Excel (Max 10MB par fichier)</p>
           </div>
           <Button variant="outline" className="pointer-events-none">Parcourir les fichiers</Button>
         </div>
       </div>
 
+      {/* Messages de statut */}
       {successMsg && (
-        <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-lg flex items-center gap-2 animate-fade-in">
+        <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-lg flex items-center gap-2">
           <CheckCircle size={20} /> {successMsg}
         </div>
       )}
       {errorMsg && (
-        <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-lg flex items-center gap-2 animate-fade-in">
+        <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-lg flex items-center gap-2">
           <AlertCircle size={20} /> {errorMsg}
         </div>
       )}
 
+      {/* Liste des fichiers en attente */}
       {files.length > 0 && (
         <div className="mt-8 space-y-3">
-          <h3 className="font-medium text-gray-700">Fichiers en attente</h3>
+          <h3 className="font-medium text-gray-700">Fichiers en attente ({files.length})</h3>
           {files.map((file, idx) => (
             <div key={idx} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
               <div className="flex items-center gap-3">
-                {file.name.endsWith('xls') || file.name.endsWith('xlsx') ? (
+                {/* Icône basée sur l'extension */}
+                {file.name.endsWith('xls') || file.name.endsWith('xlsx') || file.name.endsWith('csv') ? (
                   <FileSpreadsheet className="text-green-600" />
                 ) : (
                   <FileText className="text-red-500" />
@@ -595,10 +647,12 @@ const UploadModule = () => {
                   <p className="text-xs text-gray-400">{file.size}</p>
                 </div>
               </div>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Prêt</span>
+              <Button variant="danger" size="sm" onClick={() => removeFile(idx)}>
+                Retirer
+              </Button>
             </div>
           ))}
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end pt-4">
             <Button onClick={triggerUpload} disabled={uploading}>
               {uploading ? <Loader2 className="animate-spin" /> : 'Envoyer pour traitement'}
             </Button>
@@ -611,10 +665,11 @@ const UploadModule = () => {
 
 // 5. HISTORIQUE TAB
 const HistoryTab = ({ generalHistory, ceiHistory }) => {
+  // Combiner les deux historiques et les trier par date (plus récent en premier)
   const allMessages = [
     ...generalHistory.map(m => ({...m, type: 'Assistant AI'})), 
     ...ceiHistory.map(m => ({...m, type: 'Centrale CEI'}))
-  ].sort((a, b) => b.timestamp - a.timestamp); // Du plus récent au plus ancien
+  ].sort((a, b) => b.timestamp - a.timestamp); 
 
   return (
     <div className="space-y-6">
@@ -634,6 +689,7 @@ const HistoryTab = ({ generalHistory, ceiHistory }) => {
              allMessages.map((msg) => (
                <div key={msg.id} className={`p-4 rounded-lg border-l-4 ${msg.sender === 'user' ? 'bg-gray-50 border-gray-300' : 'bg-white border-green-500 shadow-sm'}`}>
                  <div className="flex justify-between items-start mb-1">
+                   {/* Badge pour identifier le mode de chat */}
                    <span className={`text-xs font-bold px-2 py-1 rounded ${msg.type === 'Centrale CEI' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                      {msg.type}
                    </span>
@@ -652,7 +708,7 @@ const HistoryTab = ({ generalHistory, ceiHistory }) => {
   );
 }
 
-// --- LAYOUT PRINCIPAL ---
+// --- LAYOUT PRINCIPAL (App Component) ---
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -665,7 +721,7 @@ export default function App() {
     cei: []
   });
 
-  // Initialisation des messages de bienvenue si vides
+  // Initialisation des messages de bienvenue lors de la connexion
   useEffect(() => {
     if (user) {
       if (chatHistories.general.length === 0) {
@@ -693,7 +749,7 @@ export default function App() {
     }
   }, [user]);
 
-  // Helper pour mettre à jour l'historique spécifique
+  // Helper pour mettre à jour l'historique spécifique (utilisé par ChatInterface)
   const updateHistory = (mode, updater) => {
     setChatHistories(prev => {
       const currentList = prev[mode];
@@ -702,10 +758,12 @@ export default function App() {
     });
   };
 
+  // 1. Affichage de l'écran de connexion si l'utilisateur n'est pas connecté
   if (!user) {
     return <LoginScreen onLogin={setUser} />;
   }
 
+  // 2. Fonction pour rendre le contenu de l'onglet actif
   const renderContent = () => {
     switch (currentTab) {
       case 'chat': 
@@ -736,6 +794,7 @@ export default function App() {
     }
   };
 
+  // Composant pour les éléments de navigation
   const NavItem = ({ id, label, icon: Icon }) => (
     <button
       onClick={() => { setCurrentTab(id); setIsMobileMenuOpen(false); }}
@@ -772,7 +831,7 @@ export default function App() {
         <div className="p-4 border-t border-green-600">
           <div className="flex items-center gap-3 px-4 py-2">
             <div className="w-8 h-8 bg-green-800 rounded-full flex items-center justify-center text-xs font-bold">
-              {user.name.charAt(0)}
+              {user.name.charAt(0)} {/* Initiale de l'utilisateur */}
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium truncate">{user.name}</p>
@@ -816,14 +875,14 @@ export default function App() {
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-gray-100 p-4 md:p-8 relative">
           <div className="max-w-5xl mx-auto h-full flex flex-col">
-            {/* Tab Header Title (Optional) */}
+            {/* Titre de l'onglet actif */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-800 capitalize">
-                {currentTab === 'depot' ? 'Dépôt de documents' : currentTab === 'cei' ? 'Centrale d\'Échange d\'Information' : currentTab}
+                {currentTab === 'depot' ? 'Dépôt de documents' : currentTab === 'cei' ? 'Centrale d\'Échange d\'Information' : currentTab === 'historique' ? 'Historique des activités' : currentTab}
               </h2>
             </div>
             
-            {/* Content */}
+            {/* Contenu de l'onglet */}
             <div className="flex-1">
               {renderContent()}
             </div>
